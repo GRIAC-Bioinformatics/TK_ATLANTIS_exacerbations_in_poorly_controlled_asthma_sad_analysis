@@ -1,0 +1,31 @@
+# === Config (contains local paths — never commit) ===
+config.yaml
+
+# === Data files (patient data — never commit) ===
+*.csv
+*.Rdata
+*.rdata
+*.RData
+*.rds
+
+# === Output files (regenerated from scripts) ===
+*.png
+*.pdf
+*.docx
+*.xlsx
+
+# === R-specific ===
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# === OS files ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Editor/IDE ===
+.vscode/
+*.swp
+*~
