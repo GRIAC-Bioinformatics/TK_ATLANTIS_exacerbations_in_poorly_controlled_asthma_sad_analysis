@@ -1,4 +1,3 @@
-
 # SAD as a Predictor of Asthma Exacerbations — ATLANTIS Study
 
 ## Background
@@ -224,7 +223,7 @@ install.packages(c(
 
 ## Data
 
-This analysis uses data from the **ATLANTIS** (Assessment of smaLL airways involvemenT iN asThma using ImpulSe oscillometry) study. Data are not publicly available. Access requests should be directed to the ATLANTIS study group.
+This analysis uses data from the **ATLANTIS** study. Data are not publicly available. Access requests should be directed to the ATLANTIS study group.
 
 ---
 
@@ -247,4 +246,3 @@ The following ATLANTIS study publications are relevant to this analysis:
 ## Citation
 
 > *To be added upon publication.*
->
