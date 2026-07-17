@@ -83,13 +83,17 @@ sad_nb_multi <- function(sad_variable, db_exacerbations, subgroup = NULL) {
 
   # Print the size of the dataset
   print(paste0("SAD variable: ", sad_variable))
+  print(subgroup)
   print(paste0("N = ", as.character(nrow(filter_df))))
+ 
+  print(table(filter_df[["NUM_EX_D"]], filter_df[[sad_variable]]))
   
   # association between SAD and exacerbations using NB model and offset - time of the follow-up
   # define the formula
   formula_obj <- as.formula(
     paste0("NUM_EX_D ~ AGE + SEX + ex_smoker + current_smoker + GINA45 + more_than_1_exac_last_year + LABEOSV + B_FEV1PNVG + B_RVTLC + ",
            sad_variable, "+ offset(log(time))"))
+
   # fit the model
   model_nb <- glm.nb(formula_obj, data = filter_df)
   model_summary <- summary(model_nb)
@@ -145,4 +149,14 @@ write.xlsx(results_table,
                             "sad_multi_NB_model_all_sad_all_asthma.xlsx"),
            rowNames = FALSE)
 
+
+
+### check xero-inflated regression models: 
+model_zinb <- zeroinfl(formula_obj, 
+                       dist = "negbin",
+                       data = filter_df)
+summary(model_zinb)
+summary(model_nb)
+# compare fit
+AIC(model_nb, model_zinb)  # lower AIC = better fit
 

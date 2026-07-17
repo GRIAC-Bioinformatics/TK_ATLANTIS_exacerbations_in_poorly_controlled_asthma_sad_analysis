@@ -91,13 +91,18 @@ sad_survival_multi <- function(sad_variable, db_exacerbations, subgroup = NULL) 
   )
   # run cox regression
   cox_modelbasis <- coxph(formula_obj, data = filter_df)
+  
   # tidy the table
+  coef_table <- as.data.frame(coef(summary(cox_modelbasis)))
   model_table <- tidy(cox_modelbasis,
                       exponentiate = TRUE,
                       conf.int = TRUE) %>%
     mutate(    
       across(where(is.numeric) & !p.value, ~ round(., 2)),
       p.value = formatC(p.value, format = "g", digits = 2)) %>%
+    mutate(hr_ci = paste0(as.character(estimate), " (", 
+                          as.character(conf.low), " - ",
+                          as.character(conf.high), ")")) %>%
   
     #mutate(across(where(is.numeric), ~ round(., 2))) %>%
     mutate(term = recode(term, "more_than_1_exac_last_yearTRUE" = "1+exac last year"),

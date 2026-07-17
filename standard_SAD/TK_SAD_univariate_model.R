@@ -144,7 +144,7 @@ sad_survival_uni <- function(sad_variable, db_exacerbations, subgroup = NULL) {
     )
 
   # add annotation
-  p$plot <- p$plot + ggplot2::annotate("text", x = 250, y = 0.85,
+  p$plot <- p$plot + ggplot2::annotate("text", x = 250, y = 0.65,
                                        label = paste0("HR = ", round(HR, 2),
                                                     " (95% CI ", as.character(round(cox_summary$conf.int[,"lower .95"], 2)),
                                                     "-", as.character(round(cox_summary$conf.int[,"upper .95"], 2)),

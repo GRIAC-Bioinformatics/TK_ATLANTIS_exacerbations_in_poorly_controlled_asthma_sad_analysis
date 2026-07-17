@@ -74,7 +74,7 @@ sad_nb_uni <- function(sad_variable, db_exacerbations, subgroup = NULL) {
   # association between SAD and exacerbations using NB model and offset - time of the follow-up
   # define the formula
   formula_obj <- as.formula(paste0("NUM_EX_D ~", sad_variable, "+ offset(log(time))"))
-  
+  #formula_obj <- as.formula(paste0("NUM_EX_D ~", "B_R520", "+ offset(log(time))"))
   # fit the model
   model_nb <- glm.nb(formula_obj, data = filter_df)
   model_summary <- summary(model_nb)

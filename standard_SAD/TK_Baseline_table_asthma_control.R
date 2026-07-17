@@ -18,8 +18,10 @@ db <- read.csv(cfg$paths$patient_data, header = TRUE) %>%
     extrafine_ics_all == "No" & nonextrafine_ics_all == "No" ~ "none",
     extrafine_ics_all == "Yes" & nonextrafine_ics_all == "Yes" ~ "both",
     .default = NA
-  ))
-
+  )) %>%
+  mutate(GINA45 = GINA %in% c("4", "5"),
+         GINA12 = GINA %in% c("1", "2"),
+         PHADRES_N = as.factor(PHADRES_N))
 
 # Evt filteren op astma controle
 # db <- subset.data.frame(db, db$acq6_score < 0.75)  # well contorlled
@@ -149,7 +151,9 @@ variabelen <- c(
   "Asthma duration, y", 
   "AGE_DIAG",
   "GINA",
+  "GINA45",
   "Presence of atopy",
+  "PHADRES_N",
   "Blood eosinophils, 10^9/L",
   "Sputum eosinophils, (% of non-squamous cells)",
   "FeNO, ppb", 
@@ -168,6 +172,7 @@ variabelen <- c(
   "More than 1 asthma exacerbations (during study)",
   "Inhaled corticosteroid dosage, (beclomethasone equivalent)*, μg",
   "Inhaled corticosteroid type",
+  "any_ICS",
   "Systemic corticosteroids, n (%)")
   
 nietnormaalverdeeld <- c( "FeNO, ppb", "Inhaled corticosteroid dosage, (beclomethasone equivalent)*, μg",
@@ -178,13 +183,22 @@ nietnormaalverdeeld <- c( "FeNO, ppb", "Inhaled corticosteroid dosage, (beclomet
                           "Sputum eosinophils, (% of non-squamous cells)",
                           "B_FEV1FPNVG")
 
+
 ACQ6baseline <- CreateTableOne(vars = variabelen, strata = "ACQ6group", data = db)
 Final_statistics <- print(ACQ6baseline, nonnormal = nietnormaalverdeeld, showAllLevels = FALSE, pDigits = 5)
-
 
 write.table(Final_statistics, file = file.path(cfg$paths$output_tables, "asthma_control_baseline.csv"),
           sep = "\t")
 
+db_well_poor <- db %>%
+  filter(ACQ6group != "partially controlled asthma") %>%
+  mutate(ACQ6group = droplevels(ACQ6group))
+
+ACQ6baseline_well_poor <- CreateTableOne(vars = variabelen, strata = "ACQ6group", data = db_well_poor)
+Final_statistics_well_poor <- print(ACQ6baseline_well_poor, nonnormal = nietnormaalverdeeld, showAllLevels = FALSE, pDigits = 5)
+write.table(Final_statistics_well_poor, file = file.path(cfg$paths$output_tables, "asthma_control_well_poor_baseline.csv"),
+            sep = "\t")
+  
 ### stratify by SAD 
 # R5-20
 

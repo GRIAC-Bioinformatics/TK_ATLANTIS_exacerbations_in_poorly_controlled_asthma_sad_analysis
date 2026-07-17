@@ -59,34 +59,58 @@ sad_survival_multi <- function(sad_variable, db_exacerbations, subgroup = NULL) 
   filter_df <- db_exacerbations %>%
     filter(!is.na(.data[[sad_variable]])) %>%
     mutate(!!sym(sad_variable) := as.factor(!!sym(sad_variable)))
-  # asthma control group - if defined 
+  
+  # no NAs in the other variables for the model:
+  vars_model <- c("time",
+                  "exacerbation",
+                  "AGE",
+                  "SEX",
+                  "ex_smoker",
+                  "current_smoker",
+                  "GINA45",
+                  "more_than_1_exac_last_year",
+                  "LABEOSV", 
+                  "B_FEV1PNVG",
+                  "B_RVTLC")
+  filter_df <- filter_df %>%
+    drop_na(all_of(vars_model))
+  
+  # filter for asthma control group - if defined 
   if (!is.null(subgroup)) {
     filter_df <- filter_df %>%
       filter(.data[["ACQ6group"]] == subgroup)
     
     message(paste("Filtering for", subgroup))
   }
-  
+  # Print the size of the dataset
+  print(paste0("SAD variable: ", sad_variable))
+  print(paste0("N = ", as.character(nrow(filter_df))))
   # Define the Formula
   formula_obj <- as.formula(
-    paste0("Surv(time, exacerbation) ~ AGE + SEX + ex_smoker + GINA45 + more_than_1_exac_last_year + LABEOSV + B_FEV1PNVG + ", 
+    paste0("Surv(time, exacerbation) ~ AGE + SEX + ex_smoker + current_smoker + GINA45 + more_than_1_exac_last_year + LABEOSV + B_FEV1PNVG + B_RVTLC + ", 
            sad_variable)
   )
   # run cox regression
   cox_modelbasis <- coxph(formula_obj, data = filter_df)
   # tidy the table
-  model_table <- tidy(cox_modelbasis) %>%
-    mutate(across(where(is.numeric), ~ round(., 3))) %>%
+  model_table <- tidy(cox_modelbasis,
+                      exponentiate = TRUE,
+                      conf.int = TRUE) %>%
+    mutate(    
+      across(where(is.numeric) & !p.value, ~ round(., 2)),
+      p.value = formatC(p.value, format = "g", digits = 2)) %>%
+    
+    #mutate(across(where(is.numeric), ~ round(., 2))) %>%
     mutate(term = recode(term, "more_than_1_exac_last_yearTRUE" = "1+exac last year"),
            term = recode(term, "LABEOSV" = "Blood eosinophils"),
-           term = recode(term, "B_FEV1PNVG" = "FEV1 % predicted"))
+           term = recode(term, "B_FEV1PNVG" = "FEV1 % predicted"),
+           term = recode(term, "B_RVTLC" = "RV/TLC"))
   # save models: 
   readr::write_delim(model_table,
                      file.path(cfg$paths$output_severe_sad, 
-                               paste0(subgroup, "_", sad_variable, "_multivar_cox.csv")), 
+                               paste0(subgroup, "_", sad_variable, "_multivar_cox.csv")),
                      delim = ";")
 }
-
 
 #########################################################
 sad_variables <- c("R520_higher_3rsd", "X5_lower_3rsd", "AX_higher_3rsd")
@@ -98,4 +122,4 @@ for (sad_definition in sad_variables) {
     sad_survival_multi(sad_definition,
                      db_exacerbations, 
                      control_subgroup)
-  }}s
+  }}

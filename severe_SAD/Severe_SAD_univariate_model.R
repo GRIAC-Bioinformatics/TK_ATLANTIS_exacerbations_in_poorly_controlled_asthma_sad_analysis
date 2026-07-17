@@ -6,8 +6,11 @@
 library(survival)
 library(survminer)
 library(dplyr)
-library(yaml)
+library(broom)
+library(tidyr)
+library(ggplotify)
 library(here)
+library(yaml)
 
 cfg <- yaml::read_yaml(here("config.yaml"))
 
@@ -78,24 +81,45 @@ sad_survival_uni <- function(sad_variable, db_exacerbations, subgroup = NULL) {
   
   # Manually assign the formula to the km object for the plot
   km$call$formula <- formula_obj
-  # Plot voor figuur
-  p <- ggsurvplot(km, 
-                  data = filter_df,
-                  pval = FALSE, 
-                  ylab = "Exacerbation rate", 
+  
+  p <- ggsurvplot(km, pval = FALSE, 
+                  ylab = "Cumulative incidence of exacerbation", 
                   xlab = "Time (days)",
-                  risk.table = "nrisk_cumcensor", 
-                  conf.int = TRUE, 
-                  fun = "event",
-                  legend.title = sad_variable,
+                  ylim = c(0, 0.8),
+                  risk.table = "nrisk_cumcensor", conf.int = TRUE, fun = "event",
                   legend.labs = levels(filter_df[[sad_variable]]))
+  print("passed p")
+  
+  p_inset <- ggsurvplot(km, pval = FALSE,
+                        conf.int = TRUE,
+                        fun = "event",
+                        legend = "none",
+                        risk.table = FALSE,
+                        xlab = "",
+                        ylab = "",
+                        legend.labs = levels(filter_df[[sad_variable]]))
+  inset_grob <- as.grob(p_inset$plot +
+                          theme(axis.text = element_text(size = 6),
+                                axis.title = element_blank(),
+                                plot.background = element_rect(color = "black", linewidth = 0.5)))
+  # Add inset to main plot using annotation_custom
   p$plot <- p$plot +
-    ggplot2::annotate("text", x = 10, y = 0.25,
-                      label = paste("HR =", round(HR, 2),
-                                    "\nLog-rank p =", signif(p_value_logrank, 3)),
-                      size = 4, color = "black", hjust = 0) +
-    ggtitle(paste0(subgroup))
+    annotation_custom(
+      grob = inset_grob,
+      xmin = -Inf, xmax = 200,   # e.g. xmax = 100 if x goes to 300
+      ymin = 0.45, ymax = 0.8                               # top-left area
+    )
+  
+  # add annotation
+  p$plot <- p$plot + ggplot2::annotate("text", x = 250, y = 0.65,
+                                       label = paste0("HR = ", round(HR, 2),
+                                                      " (95% CI ", as.character(round(cox_summary$conf.int[,"lower .95"], 2)),
+                                                      "-", as.character(round(cox_summary$conf.int[,"upper .95"], 2)),
+                                                      ");",
+                                                      "\nLog-rank p = ", round(p_value_logrank, 3)),
+                                       size = 4, color = "black", hjust = 0)
   file = file.path(cfg$paths$output_severe_sad, paste0("uni_model_", subgroup, "_", sad_variable, ".png"))
+  
   png(file, width = 1200, height = 1000, res= 150)
   print(p)
   dev.off()
