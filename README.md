@@ -245,4 +245,4 @@ The following ATLANTIS study publications are relevant to this analysis:
 
 ## Citation
 
-> *To be added upon publication.*
+*Galant, MD Stanley P., et al. "Small Airways Disease predicts exacerbation risk in well-controlled, but not in poorly-controlled asthma: a post-hoc analysis of the ATLANTIS study." *The Journal of Allergy and Clinical Immunology: In Practice (2026). DOI: [DOI: 10.1016/j.jaip.2026.07.039]

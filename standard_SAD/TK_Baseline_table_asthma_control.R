@@ -23,6 +23,19 @@ db <- read.csv(cfg$paths$patient_data, header = TRUE) %>%
          GINA12 = GINA %in% c("1", "2"),
          PHADRES_N = as.factor(PHADRES_N))
 
+load(cfg$paths$exacerbations_data) # from Tessa K.
+db_exacerbations <- joined %>%
+  mutate(PT = as.numeric(PT)) %>%
+  dplyr::select(c("PT", "date_baseline", "date_exacerbation", "time_to_exacerbation",
+                  "exacerbation", "time")) %>%
+  mutate(exacerbation = as.integer(exacerbation)) %>%
+  mutate(time = if_else(time>420, 420, time)) %>%
+  left_join(db, by = c("PT" = "PT"))
+
+# select only patients with known time of the follow-up 
+db <- db %>%
+  filter(PT %in% db_exacerbations$PT)
+
 # Evt filteren op astma controle
 # db <- subset.data.frame(db, db$acq6_score < 0.75)  # well contorlled
 # db <- subset.data.frame(db, db$acq6_score >= 0.75 & db$acq6_score <= 1.5)  # partially controlled
@@ -109,6 +122,10 @@ db <- db %>%
     `More than 1 asthma exacerbations (last year)` = if_else(NUM_EX>0, "Yes", "No"),
     `More than 1 asthma exacerbations (during study)` = if_else(NUM_EX_D>0, "Yes", "No"),
   )
+
+# filter only samples with available B_R520ABNRp
+db <- db %>%
+  filter(!is.na(B_R520ABNRp))
 
 # rename columns:
 db <- db %>%

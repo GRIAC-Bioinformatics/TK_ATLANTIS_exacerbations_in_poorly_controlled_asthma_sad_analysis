@@ -37,5 +37,5 @@ png(file.path(cfg$paths$output_figures, "sad_uni_model", "uni_surv_figure1.png")
     width = 1200, 
     height = 600)
 print(combined_fig)
-dev.off()s
+dev.off()
 
